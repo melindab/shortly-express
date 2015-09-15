@@ -32,8 +32,6 @@ app.use(session({
 
 app.get('/',
 function(req, res) {
-  // if not logged in, redirect to login page
-  // if req.session.user === undefined; (line 148 logs user in session)
   if (req.session.user === undefined) {
     res.redirect('/login');
   } else {
@@ -44,6 +42,14 @@ function(req, res) {
 app.get('/login',
 function(req, res) {
   res.render('login');
+});
+
+app.get('/logout',
+function(req, res) {
+  req.session.destroy(function(err){
+    console.log(err);
+  });
+  res.redirect('/login');
 });
 
 app.get('/signup',
@@ -108,12 +114,11 @@ function(req, res) {
 
 
 /************************************************************/
-// Write your authentication routes here
+// Authentication routes
 /************************************************************/
 
 app.post('/signup',
 function(req, res) {
-  // console.log(req.body);
   var username = req.body.username;
   var password = req.body.password;
   new User({ username: username }).fetch().then(function(found) {
@@ -127,8 +132,6 @@ function(req, res) {
         });
         user.save().then(function(newUser) {
           Users.add(newUser);
-          // console.log('user saved');
-          console.log('logging in');
           req.session.regenerate(function(){
             req.session.user = newUser;
             res.redirect('/');
@@ -139,7 +142,6 @@ function(req, res) {
 });
 
 
-
 app.post('/login',
 function(req, res) {
   var username = req.body.username;
@@ -148,7 +150,6 @@ function(req, res) {
     if (found) {
       bcrypt.compare(password, found.get('password'), function(err, match){
         if (match) {
-          //create session
           req.session.regenerate(function(){
             req.session.user = found;
             res.redirect('/');
@@ -164,8 +165,6 @@ function(req, res) {
     }
   });
 });
-
-
 
 
 /************************************************************/
