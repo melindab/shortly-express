@@ -4,6 +4,7 @@ var partials = require('express-partials');
 var bodyParser = require('body-parser');
 
 
+
 var db = require('./app/config');
 var Users = require('./app/collections/users');
 var User = require('./app/models/user');
@@ -21,11 +22,17 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+app.use(express.session());
 
 
 app.get('/',
 function(req, res) {
-  res.render('index');
+  // if not logged in, redirect to login page
+  if (true) {
+    res.redirect('/login');
+  } else {
+    res.render('index');
+  }
 });
 
 app.get('/login',
@@ -84,38 +91,63 @@ function(req, res) {
   });
 });
 
+
+
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
 
+app.post('/signup',
+function(req, res) {
+  // var uri = req.body.url;
+  console.log(req.body);
+  var username = req.body.username; // capture username from form
+  var password = req.body.password; // capture password from form and bcrypt it
 
+  // var salt = bcrypt.genSaltSync(10);
+  // var hash = bcrypt.hashSync(password, salt);
 
-/*
-var bcrypt = require(bcrypt);
-...
-app.post('/login', function(request, response) {
-
-    var username = request.body.username;
-    var password = request.body.password;
-    var salt = bcrypt.genSaltSync(10);
-    var hash = bcrypt.hashSync(password, salt);
-
-    var userObj = db.users.findOne({ username: username, password: hash });
-
-    if(userObj){
-        request.session.regenerate(function(){
-            request.session.user = userObj.username;
-            response.redirect('/restricted');
+  new User({ username: username, password: password }).fetch().then(function(found) {
+    if (found) {
+      // handle duplicate usernames
+      // if both match, I guess we could just log them in...
+      //
+      res.send(200, found.attributes);
+    } else {
+        var user = new User({
+          username: username,
+          password: password
+        });
+        user.save().then(function(newUser) {
+          Users.add(newUser);
+          res.send(200); // somewhere here we need to log them in / redirect them
         });
     }
-    else {
-        res.redirect('login');
-    }
-
+  });
 });
-*/
 
 
+
+app.post('/login',
+function(req, res) {
+  // var uri = req.body.url;
+  console.log(req.body);
+  var username = req.body.username; // capture username from form
+  var password = req.body.password; // capture password from form and bcrypt it
+  // var salt = bcrypt.genSaltSync(10);
+  // var hash = bcrypt.hashSync(password, salt);
+  new User({ username: username, password: password }).fetch().then(function(found) {
+    if (found) {
+      req.session.regenerate(function(){
+        req.session.user = username;
+        res.render('index');
+      });
+    }
+    else {
+      res.redirect('/login');
+    }
+  });
+});
 
 
 

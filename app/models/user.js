@@ -11,8 +11,9 @@ var User = db.Model.extend({
   },
   initialize: function(){
     this.on('creating', function(model, attrs, options){
-      // get submitted password
-
+      // get submitted username and password
+      var username = model.attributes.username;
+      var password = model.attributes.password;
       // run it through bcrypt
       var salt = bcrypt.genSaltSync(10);
       var hash = bcrypt.hashSync(password, salt);
