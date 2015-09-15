@@ -21,7 +21,6 @@ var User = db.Model.extend({
       model.set('password', hash);
     });
   }
-
 });
 
 module.exports = User;
