@@ -29,14 +29,9 @@ app.use(session({
   saveUninitialized: true
 }));
 
-
-app.get('/',
+app.get('/', util.checkUser,
 function(req, res) {
-  if (req.session.user === undefined) {
-    res.redirect('/login');
-  } else {
-    res.render('index');
-  }
+  res.render('index');
 });
 
 app.get('/login',
@@ -59,24 +54,16 @@ function(req, res) {
   res.render('signup');
 });
 
-app.get('/create',
+app.get('/create', util.checkUser,
 function(req, res) {
-  if (req.session.user === undefined) {
-    res.redirect('/login');
-  } else {
-    res.render('index');
-  }
+  res.render('index');
 });
 
-app.get('/links',
+app.get('/links', util.checkUser,
 function(req, res) {
-  if (req.session.user === undefined) {
-      res.redirect('/login');
-  } else {
-    Links.reset().fetch().then(function(links) {
-      res.send(200, links.models);
-    });
-  }
+  Links.reset().fetch().then(function(links) {
+    res.send(200, links.models);
+  });
 });
 
 app.post('/links',
